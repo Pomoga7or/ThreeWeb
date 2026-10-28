@@ -1,25 +1,21 @@
-import React, { useState, Suspense } from 'react';
+import React from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
-
-import { Location } from './components/Location';
-import { Character } from './components/Character';
-import { SkyDome } from './components/SkyDome';
 import { MainMenu } from './components/MainMenu';
+import { Scene } from './canvas/Scene';
+import { useGameStore } from './store/useGameStore';
 
-function App() {
-  const [isPlaying, setIsPlaying] = useState(false);
-  
-  // Управляем анимацией персонажа через стейт (например, в меню 'idle', а при старте 'Sitting')
-  const [characterAnimation, setCharacterAnimation] = useState('idle');
+export function App() {
+  const isPlaying = useGameStore((state) => state.isPlaying);
+  const setIsPlaying = useGameStore((state) => state.setIsPlaying);
+  const setCharacterAnimation = useGameStore((state) => state.setCharacterAnimation);
 
   const handleStart = () => {
     setIsPlaying(true);
-    setCharacterAnimation('Sitting'); // При нажатии «Старт» переключаем анимацию
+    setCharacterAnimation('Sitting'); // Переключаем анимацию при старте
   };
 
   const handleSettings = () => {
-    alert('Настройки звука и графики в разработке...');
+    alert('Панель настроек откроется здесь...');
   };
 
   const handleExit = () => {
@@ -27,58 +23,35 @@ function App() {
   };
 
   return (
-    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', margin: 0, padding: 0, background: '#000' }}>
-      
-      {/* Главное меню */}
+    <div style={{ width: '100vw', height: '100vw', overflow: 'hidden', margin: 0, padding: 0, background: '#000' }}>
+
+      {/* UI Меню */}
       {!isPlaying && (
-        <MainMenu 
-          onStart={handleStart} 
-          onSettings={handleSettings} 
-          onExit={handleExit} 
+        <MainMenu
+          onStart={handleStart}
+          onSettings={handleSettings}
+          onExit={handleExit}
         />
       )}
 
-      {/* Пример дополнительной панели управления анимациями прямо в игре (опционально) */}
+      {/* Опциональные кнопки управления анимацией прямо во время игры */}
       {isPlaying && (
-        <div style={{
-          position: 'absolute',
-          top: '20px',
-          left: '20px',
-          zIndex: 10,
-          display: 'flex',
-          gap: '10px'
-        }}>
+        <div style={{ position: 'absolute', top: 20, left: 20, zIndex: 10, display: 'flex', gap: 10 }}>
           <button onClick={() => setCharacterAnimation('idle')}>Idle</button>
           <button onClick={() => setCharacterAnimation('Sitting')}>Sitting</button>
           <button onClick={() => setCharacterAnimation('SittingDisapproval')}>Disapproval</button>
         </div>
       )}
 
-      {/* Основная 3D сцена на фоне */}
-      <Canvas style={{ width: '100vw', height: '100vh', background: '#111' }}>
-        <PerspectiveCamera makeDefault position={[0, 2, 5]} fov={60} />
-        
-        {/* Блокируем OrbitControls, пока isPlaying === false (меню открыто) */}
-        <OrbitControls 
-          makeDefault 
-          enabled={isPlaying} 
-        />
-
-        {/* Закат и облака */}
-        <SkyDome />
-
-        <ambientLight intensity={0.4} />
-        <directionalLight position={[10, 10, 5]} intensity={0.8} />
-
-        <Suspense fallback={null}>
-          <Location position={[0, 0, 0]} />
-          
-          {/* Передаем динамический проп анимации в Character */}
-          <Character 
-            animationName={characterAnimation} 
-            position={[0, 0, 0]} 
-          />
-        </Suspense>
+      {/* 3D Canvas */}
+      <Canvas
+        style={{ width: '100vw', height: '100vh', background: '#111' }}
+        // Ограничиваем Pixel Ratio от 1 до 2, чтобы слабые телефоны не рендерили в 3x-4x
+        dpr={[1, 2]}
+        // Включаем производительный режим теней
+        gl={{ antialias: true, powerPreference: "high-performance" }}
+      >
+        <Scene />
       </Canvas>
 
     </div>
