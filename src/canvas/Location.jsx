@@ -7,15 +7,18 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { createPS1Material } from '../shaders/ps1/ps1Material';
 import { Fire } from './Fire';
 
+// Безопасный абсолютный путь с учетом префикса репозитория
+const MODEL_PATH = `${import.meta.env.BASE_URL}models/location.glb`;
+
 export function Location(props) {
     const gl = useThree((state) => state.gl);
 
     // Подключаем MeshoptDecoder через callback-функцию загрузчика
-    const { scene } = useGLTF('/models/location.glb', undefined, (loader) => {
+    const { scene } = useGLTF(MODEL_PATH, undefined, (loader) => {
         loader.setMeshoptDecoder(MeshoptDecoder);
         
         const ktx2Loader = new KTX2Loader();
-        ktx2Loader.setTranscoderPath('/basis/');
+        ktx2Loader.setTranscoderPath(`${import.meta.env.BASE_URL}basis/`);
         ktx2Loader.detectSupport(gl);
         loader.setKTX2Loader(ktx2Loader);
     });
@@ -76,6 +79,6 @@ export function Location(props) {
 }
 
 // Корректная предзагрузка с поддержкой MeshoptDecoder
-useGLTF.preload('/models/location.glb', undefined, (loader) => {
+useGLTF.preload(MODEL_PATH, undefined, (loader) => {
     loader.setMeshoptDecoder(MeshoptDecoder);
 });
