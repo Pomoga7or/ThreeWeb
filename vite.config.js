@@ -1,4 +1,5 @@
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
 import babel from '@rolldown/plugin-babel'
 import { defineConfig } from 'vite'
 import vitePluginString from 'vite-plugin-string';
@@ -9,5 +10,7 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     vitePluginString()
+    
   ],
+  base: '/threeweb/',
 })

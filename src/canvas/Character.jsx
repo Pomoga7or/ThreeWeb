@@ -45,4 +45,10 @@ export function Character({ animationName = 'idle', ...props }) {
     return <primitive object={scene} {...props} />;
 }
 
-useGLTF.preload('/models/character.glb');
+// useGLTF.preload('/models/character.glb');
+useGLTF.preload('/models/character.glb', undefined, (loader) => {
+  const ktx2Loader = new KTX2Loader();
+  ktx2Loader.setTranscoderPath('/basis/'); // Укажи путь к папке с бинарниками basis из three/examples
+  ktx2Loader.detectSupport(renderer); // Нужен доступ к WebGLRenderer
+  loader.setKTX2Loader(ktx2Loader);
+});

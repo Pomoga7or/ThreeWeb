@@ -1,16 +1,30 @@
 import React, { useMemo, useState } from 'react';
 import { useGLTF } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
+import { KTX2Loader } from 'three-stdlib';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { createPS1Material } from '../shaders/ps1/ps1Material';
 import { Fire } from './Fire';
 
 export function Location(props) {
-    const { scene } = useGLTF('/models/location.glb');
+    const gl = useThree((state) => state.gl);
+
+    // Подключаем MeshoptDecoder через callback-функцию загрузчика
+    const { scene } = useGLTF('/models/location.glb', undefined, (loader) => {
+        loader.setMeshoptDecoder(MeshoptDecoder);
+        
+        const ktx2Loader = new KTX2Loader();
+        ktx2Loader.setTranscoderPath('/basis/');
+        ktx2Loader.detectSupport(gl);
+        loader.setKTX2Loader(ktx2Loader);
+    });
+
     const [firePosition, setFirePosition] = useState(null);
 
     const clonedScene = useMemo(() => {
         const clone = scene.clone(true);
-        let lastFirePos = null; // <-- Объявляем переменную здесь
+        let lastFirePos = null;
 
         clone.traverse((child) => {
             if (child.isMesh) {
@@ -25,7 +39,6 @@ export function Location(props) {
                     lastFirePos = [center.x, box.max.y - 0.2, center.z];
                 }
 
-                // Применяем стандартный PS1-шейдер
                 if (mat.map) {
                     mat.map.generateMipmaps = false;
                     mat.map.minFilter = THREE.NearestFilter;
@@ -62,4 +75,7 @@ export function Location(props) {
     );
 }
 
-useGLTF.preload('/models/location.glb');
+// Корректная предзагрузка с поддержкой MeshoptDecoder
+useGLTF.preload('/models/location.glb', undefined, (loader) => {
+    loader.setMeshoptDecoder(MeshoptDecoder);
+});
