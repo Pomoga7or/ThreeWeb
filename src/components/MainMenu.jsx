@@ -40,17 +40,17 @@ export function MainMenu({ onStart, onSettings, onExit }) {
         {/* Текстура 1 */}
         <div style={{
           position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-          backgroundImage: 'url(/images/menuBack1.png)',
+          backgroundImage: `url(${import.meta.env.BASE_URL}images/menuBack1.png)`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           opacity: 0.35,
-          mixBlendMode: 'multiply', // Убирает белые/серые фоны, оставляя темные мазки
+          mixBlendMode: 'multiply',
         }} />
 
         {/* Текстура 2 */}
         <div style={{
           position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-          backgroundImage: 'url(/images/menuBack2.png)',
+          backgroundImage: `url(${import.meta.env.BASE_URL}images/menuBack2.png)`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           opacity: 0.3,
@@ -60,7 +60,7 @@ export function MainMenu({ onStart, onSettings, onExit }) {
         {/* Текстура 3 */}
         <div style={{
           position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-          backgroundImage: 'url(/images/menuBack3.png)',
+          backgroundImage: `url(${import.meta.env.BASE_URL}images/menuBack3.png)`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           opacity: 0.25,
@@ -86,7 +86,7 @@ export function MainMenu({ onStart, onSettings, onExit }) {
         pointerEvents: 'auto',
         zIndex: 5,
       }}>
-        
+
         {/* Вертикальная плашка MENU */}
         <div style={{
           background: '#050505',

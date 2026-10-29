@@ -4,9 +4,12 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useCharacterAnimations } from '../hooks/useCharacterAnimation';
 
-export function Character({ animationName = 'idle', ...props }) {
-    const { scene, animations } = useGLTF('/models/character.glb');
+// Безопасный абсолютный путь с учетом префикса репозитория
+const CHARACTER_PATH = `${import.meta.env.BASE_URL}models/character.glb`;
 
+export function Character({ animationName = 'idle', ...props }) {
+    const { scene, animations } = useGLTF(CHARACTER_PATH);
+    
     // Настраиваем PS1-фильтрацию текстур прямо на оригинальной сцене модели
     useEffect(() => {
         if (!scene) return;
@@ -26,7 +29,7 @@ export function Character({ animationName = 'idle', ...props }) {
             }
         });
     }, [scene]);
-    
+
     // Подключаем наш гибкий хук управления анимациями
     const { playAnimation, updateMixer } = useCharacterAnimations(animations, scene);
 
@@ -45,10 +48,5 @@ export function Character({ animationName = 'idle', ...props }) {
     return <primitive object={scene} {...props} />;
 }
 
-// useGLTF.preload('/models/character.glb');
-useGLTF.preload('/models/character.glb', undefined, (loader) => {
-  const ktx2Loader = new KTX2Loader();
-  ktx2Loader.setTranscoderPath('/basis/'); // Укажи путь к папке с бинарниками basis из three/examples
-  ktx2Loader.detectSupport(renderer); // Нужен доступ к WebGLRenderer
-  loader.setKTX2Loader(ktx2Loader);
-});
+// Корректная предзагрузка модели с учетом базового путя
+useGLTF.preload(CHARACTER_PATH);
