@@ -12,5 +12,5 @@ export default defineConfig({
     vitePluginString()
     
   ],
-  base: '/threeweb/',
+  base: '/ThreeWeb/',
 })
