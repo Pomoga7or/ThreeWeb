@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { MainMenu } from './components/MainMenu';
+import { GameCard } from './components/GameCard';
 import { Scene } from './canvas/Scene';
 import { useGameStore } from './store/useGameStore';
 
@@ -9,23 +10,50 @@ export function App() {
   const setIsPlaying = useGameStore((state) => state.setIsPlaying);
   const setCharacterAnimation = useGameStore((state) => state.setCharacterAnimation);
 
+  // Стейт для управления кастомной ретро-карточкой вместо стандартного alert
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    confirmText: 'OK',
+    cancelText: null,
+  });
+
   const handleStart = () => {
     setIsPlaying(true);
     setCharacterAnimation('Sitting'); // Переключаем анимацию при старте
   };
 
   const handleSettings = () => {
-    alert('Панель настроек откроется здесь...');
+    setModalConfig({
+      isOpen: true,
+      title: 'OPTIONS',
+      message: 'Панель настроек находится в разработке.',
+      onConfirm: () => setModalConfig((prev) => ({ ...prev, isOpen: false })),
+      confirmText: 'CLOSE',
+      cancelText: null,
+    });
   };
 
   const handleExit = () => {
-    window.location.href = 'https://www.google.com';
+    setModalConfig({
+      isOpen: true,
+      title: 'EXIT GAME',
+      message: 'Вы действительно хотите вернуться в Windows?',
+      onConfirm: () => {
+        window.location.href = 'https://www.google.com';
+      },
+      confirmText: 'YES',
+      cancelText: 'NO',
+      onClose: () => setModalConfig((prev) => ({ ...prev, isOpen: false })),
+    });
   };
 
   return (
-    <div style={{ width: '100vw', height: '100vw', overflow: 'hidden', margin: 0, padding: 0, background: '#000' }}>
+    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', margin: 0, padding: 0, background: '#000' }}>
 
-      {/* UI Меню */}
+      {/* UI Главное Меню */}
       {!isPlaying && (
         <MainMenu
           onStart={handleStart}
@@ -33,6 +61,17 @@ export function App() {
           onExit={handleExit}
         />
       )}
+
+      {/* Кастомная ретро-карточка (вместо alert) */}
+      <GameCard
+        isOpen={modalConfig.isOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onConfirm={modalConfig.onConfirm}
+        onClose={modalConfig.onClose}
+        confirmText={modalConfig.confirmText}
+        cancelText={modalConfig.cancelText}
+      />
 
       {/* Опциональные кнопки управления анимацией прямо во время игры */}
       {isPlaying && (
@@ -46,9 +85,7 @@ export function App() {
       {/* 3D Canvas */}
       <Canvas
         style={{ width: '100vw', height: '100vh', background: '#111' }}
-        // Ограничиваем Pixel Ratio от 1 до 2, чтобы слабые телефоны не рендерили в 3x-4x
         dpr={[1, 2]}
-        // Включаем производительный режим теней
         gl={{ antialias: true, powerPreference: "high-performance" }}
       >
         <Scene />

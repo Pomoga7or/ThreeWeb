@@ -5,9 +5,25 @@ html, body {
   height: 100%;
   overflow: hidden;
   background-color: #111;
+    font-family: 'Pershotravneva55', sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
 #root {
   width: 100%;
   height: 100%;
+}
+@font-face {
+  font-family: 'Pershotravneva55';
+  src: url('/fonts/pershotravneva55-regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+  font-family: 'Pershotravneva55', sans-serif !important;
 }

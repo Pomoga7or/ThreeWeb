@@ -1,37 +1,31 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useGLTF } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { createPS1Material } from '../shaders/ps1/ps1Material';
-import { createFireMaterial } from '../shaders/fire/fireMaterial';
+import { Fire } from './Fire';
 
 export function Location(props) {
     const { scene } = useGLTF('/models/location.glb');
-    
-    // Храним ссылки на материалы огня, чтобы обновлять время в кадре
-    const fireMaterialsRef = useRef([]);
+    const [firePosition, setFirePosition] = useState(null);
 
     const clonedScene = useMemo(() => {
         const clone = scene.clone(true);
-        fireMaterialsRef.current = [];
+        let lastFirePos = null; // <-- Объявляем переменную здесь
 
         clone.traverse((child) => {
             if (child.isMesh) {
                 const mat = child.material;
                 const meshName = child.name ? child.name.toLowerCase() : '';
-                const matName = mat?.name ? mat.name.toLowerCase() : '';
 
-                // Если это огонь из Blender (fire1, fire2, Fire_Mat)
-                const isFire = meshName.includes('fire') || matName.includes('fire_mat');
-
-                if (isFire) {
-                    const fireMat = createFireMaterial();
-                    fireMaterialsRef.current.push(fireMat);
-                    child.material = fireMat;
-                    return;
+                if (meshName.includes('firebarrel')) {
+                    const box = new THREE.Box3().setFromObject(child);
+                    const center = new THREE.Vector3();
+                    box.getCenter(center);
+                    
+                    lastFirePos = [center.x, box.max.y - 0.2, center.z];
                 }
 
-                // Для остальных элементов локации — стандартный PS1-шейдер
+                // Применяем стандартный PS1-шейдер
                 if (mat.map) {
                     mat.map.generateMipmaps = false;
                     mat.map.minFilter = THREE.NearestFilter;
@@ -51,20 +45,21 @@ export function Location(props) {
             }
         });
 
+        if (lastFirePos) {
+            setFirePosition(lastFirePos);
+        }
+
         return clone;
     }, [scene]);
 
-    // Обновляем таймер анимации огня каждый кадр
-    useFrame((state) => {
-        const elapsedTime = state.clock.getElapsedTime();
-        fireMaterialsRef.current.forEach((mat) => {
-            if (mat.uniforms && mat.uniforms.uTime) {
-                mat.uniforms.uTime.value = elapsedTime;
-            }
-        });
-    });
-
-    return <primitive object={clonedScene} {...props} />;
+    return (
+        <group {...props}>
+            <primitive object={clonedScene} />
+            {firePosition && (
+                <Fire position={firePosition} scale={[0.6, 1.0, 0.6]} />
+            )}
+        </group>
+    );
 }
 
 useGLTF.preload('/models/location.glb');

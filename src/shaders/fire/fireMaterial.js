@@ -3,64 +3,70 @@ import * as THREE from 'three';
 const fireVertexShader = `
   varying vec2 vUv;
   void main() {
-    vUv = uv;
+    // Инвертируем UV по вертикали прямо на уровне геометрии
+    vUv = vec2(uv.x, 1.0 - uv.y);
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
 
 const fireFragmentShader = `
   uniform float uTime;
+  uniform vec2 uResolution;
   varying vec2 vUv;
 
-  float random(vec2 st) {
-    return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+  vec2 hash( vec2 p ) {
+      p = vec2( dot(p,vec2(127.1,311.7)),
+               dot(p,vec2(269.5,183.3)) );
+      return -1.0 + 2.0*fract(sin(p)*43758.5453123);
   }
 
-  float noise(vec2 st) {
-    vec2 i = floor(st);
-    vec2 f = fract(st);
-    float a = random(i);
-    float b = random(i + vec2(1.0, 0.0));
-    float c = random(i + vec2(0.0, 1.0));
-    float d = random(i + vec2(1.0, 1.0));
-    vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+  float noise( in vec2 p ) {
+      const float K1 = 0.366025404;
+      const float K2 = 0.211324865;
+      vec2 i = floor( p + (p.x+p.y)*K1 );
+      vec2 a = p - i + (i.x+i.y)*K2;
+      vec2 o = (a.x>a.y) ? vec2(1.0,0.0) : vec2(0.0,1.0);
+      vec2 b = a - o + K2;
+      vec2 c = a - 1.0 + 2.0*K2;
+      vec3 h = max( 0.5-vec3(dot(a,a), dot(b,b), dot(c,c) ), 0.0 );
+      vec3 n = h*h*h*h*vec3( dot(a,hash(i+0.0)), dot(b,hash(i+o)), dot(c,hash(i+1.0)));
+      return dot( n, vec3(70.0) );
+  }
+
+  float fbm(vec2 uv) {
+      float f;
+      mat2 m = mat2( 1.6,  1.2, -1.2,  1.6 );
+      f  = 0.5000*noise( uv ); uv = m*uv;
+      f += 0.2500*noise( uv ); uv = m*uv;
+      f += 0.1250*noise( uv ); uv = m*uv;
+      f += 0.0625*noise( uv ); uv = m*uv;
+      f = 0.5 + 0.5*f;
+      return f;
   }
 
   void main() {
-    vec2 uv = vUv;
+      vec2 uv = vUv;
+      vec2 q = uv;
+      
+      q.x = (q.x - 0.5) * 2.0; 
+      q.y *= 2.0;
+      
+      // Направление движения вверх через минус время
+      float T3 = -uTime * 4.5;
+      q.y -= 0.25;
+      
+      // Возвращаем проверенную формулу силуэта без ломающих изменений
+      float n = fbm(q * 4.5 - vec2(0.0, T3));
+      float c = 1. - 16. * pow( max( 0., length(q * vec2(1.2 + q.y * 0.5, .75)) - n * max( 0., q.y + .25 ) ), 1.2 );
+      float c1 = n * c * (1.5 - pow(2.50 * uv.y, 4.));
+      c1 = clamp(c1, 0., 1.);
 
-    // Инвертируем UV, чтобы низ был основанием (0.0), а верх — кончиком (1.0)
-    float fireHeight = (0.4 * uv.x);
+      vec3 col = vec3(1.5 * c1, 1.5 * c1 * c1 * c1, c1 * c1 * c1 * c1 * c1 * c1);
+      float a = c * (1. - pow(uv.y, 3.));
+      
+      if (a < 0.02) discard;
 
-    // Делаем форму костра сужающейся кверху
-    float centerDist = abs(uv.x - 0.5);
-    if (centerDist > 0.45 || fireHeight < 0.0) discard;
-
-    // Активное движение шума вверх за счет uTime
-    vec2 st = uv * vec2(10.0, 8.0);
-    st.y -= uTime * 2.0; 
-
-    float n = noise(st);
-    
-    // Интенсивность огня с сильным искажением от шума
-    float flame = fireHeight - n * 0.35;
-    
-    // Яркие цвета пламени
-    vec3 colDark = vec3(0.5, 0.1, 0.0);
-    vec3 colMid = vec3(1.0, 0.4, 0.0);
-    vec3 colLight = vec3(1.0, 0.9, 0.3);
-
-    float intensity = flame * 1.8;
-    vec3 finalColor = mix(colDark, colMid, clamp(intensity, 0.0, 1.0));
-    finalColor = mix(finalColor, colLight, clamp(intensity - 1.0, 0.0, 1.0));
-
-    // Прозрачность
-    float alpha = smoothstep(0.0, 0.15, flame) * smoothstep(1.0, 0.2, uv.y);
-
-    if (alpha < 0.05) discard;
-
-    gl_FragColor = vec4(finalColor * 2.0, alpha);
+      gl_FragColor = vec4(col, a);
   }
 `;
 
@@ -70,6 +76,7 @@ export function createFireMaterial() {
     fragmentShader: fireFragmentShader,
     uniforms: {
       uTime: { value: 0.0 },
+      uResolution: { value: new THREE.Vector2(512, 512) },
     },
     transparent: true,
     side: THREE.DoubleSide,
