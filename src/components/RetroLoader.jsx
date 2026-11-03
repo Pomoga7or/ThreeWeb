@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useProgress } from '@react-three/drei';
 
+// Безопасный путь для Vite, работающий и локально, и на деплое (если картинка в src/images)
+// Либо замени на путь из public: '/images/loaderWall.png'
+const bgImageSrc = new URL('../images/loaderWall.png', import.meta.url).href;
+
 // ==========================================
 // РЕЖИМ ОТЛАДКИ ЛОАДЕРА:
 // true  — лоадер висит бесконечно для настройки
@@ -12,6 +16,12 @@ export function RetroLoader() {
   const { progress: realProgress, active } = useProgress();
   const [displayProgress, setDisplayProgress] = useState(0);
   const [statusText, setStatusText] = useState('LOADING');
+
+  // Предзагрузка картинки фона в фоновом режиме, чтобы она отрисовалась мгновенно
+  useEffect(() => {
+    const img = new Image();
+    img.src = bgImageSrc;
+  }, []);
 
   // Гибридная логика: мгновенный старт + синхронизация с реальным useProgress
   useEffect(() => {
@@ -35,7 +45,7 @@ export function RetroLoader() {
 
         return prev;
       });
-    }, 5);
+    }, 10);
 
     return () => clearInterval(interval);
   }, [realProgress, active]);
@@ -92,43 +102,45 @@ export function RetroLoader() {
         `}
       </style>
 
-      {/* ЕДИНЫЙ КОНТЕЙНЕР: фон (двигается синхронно) */}
+      {/* ЕДИНЫЙ КОНТЕЙНЕР: фон с предзагруженным URL и фоновым цветом-заглушкой */}
       <div style={{
         position: 'absolute',
         top: '-5%',
         left: '-5%',
         width: '110vw',
         height: '110vh',
-        backgroundImage: `url(${import.meta.env.BASE_URL}images/loaderWall.png)`,
+        backgroundColor: '#030303', // Заглушка, пока текстура подгружается сетью
+        backgroundImage: `url(${bgImageSrc})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         animation: 'subtleZoom 12s ease-in-out infinite, glitchDrift 8s ease-in-out infinite, crtFlicker 0.15s infinite',
         filter: 'contrast(125%) saturate(85%) brightness(40%) blur(0.5px)',
         zIndex: 1,
-        perspective: '1200px', // Включаем 3D-пространство для контейнера
+        perspective: '1200px',
       }}>
         
+        {/* 3D-ПЛАШКА */}
         <div style={{
           position: 'absolute',
-          bottom: '28%', // Скорректировали позицию под увеличенный размер
+          bottom: '28%',
           right: '18%',
           transform: 'rotateX(8deg) rotateY(-45deg) rotateZ(-4deg)',
           transformStyle: 'preserve-3d',
           background: 'rgba(10, 10, 10, 0.92)',
           border: '2px solid rgba(255, 51, 51, 0.4)',
-          padding: '38px 48px', // Увеличенные внутренние отступы
-          width: '620px',        // Увеличенная ширина плашки
+          padding: '38px 48px',
+          width: '620px',
           boxShadow: '0 30px 60px rgba(0,0,0,0.95), inset 0 0 25px rgba(255, 51, 51, 0.15)',
         }}>
           
-          {/* Текст статуса (красный) */}
+          {/* Текст статуса */}
           <div style={{
-            fontSize: '1rem',
+            fontSize: '1.5rem',
             color: '#ff3333',
-            marginBottom: '12px',
-            letterSpacing: '2px',
+            marginBottom: '18px',
+            letterSpacing: '3px',
             textTransform: 'uppercase',
-            textShadow: '2px 2px #000',
+            textShadow: '3px 3px #000',
             display: 'flex',
             justifyContent: 'space-between',
           }}>
@@ -136,20 +148,20 @@ export function RetroLoader() {
             <span style={{ color: '#fff' }}>{Math.round(displayProgress)}%</span>
           </div>
 
-          {/* Полоска загрузки (красная) */}
+          {/* Полоска загрузки */}
           <div style={{
             width: '100%',
-            height: '10px',
+            height: '16px',
             background: 'rgba(0, 0, 0, 0.9)',
-            border: '1px solid #333',
-            padding: '2px',
+            border: '1px solid #444',
+            padding: '3px',
             boxSizing: 'border-box',
           }}>
             <div style={{
               width: `${displayProgress}%`,
               height: '100%',
               background: '#ff3333',
-              boxShadow: '0 0 8px #ff3333, inset 0 0 6px rgba(255,255,255,0.3)',
+              boxShadow: '0 0 12px #ff3333, inset 0 0 8px rgba(255,255,255,0.3)',
               transition: 'width 0.1s ease-out',
             }} />
           </div>
@@ -171,7 +183,7 @@ export function RetroLoader() {
       <div style={{
         position: 'absolute',
         bottom: '25px',
-        zIndex: '3',
+        zIndex: 3,
         fontSize: '0.65rem',
         color: '#555',
         letterSpacing: '1px',
