@@ -4,13 +4,12 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useCharacterAnimations } from '../hooks/useCharacterAnimation';
 
-// Безопасный абсолютный путь с учетом префикса репозитория
-const CHARACTER_PATH = `${import.meta.env.BASE_URL}models/character.glb`;
+const CHARACTER_PATH = `${import.meta.env.BASE_URL}models/characterNotOpimized.glb`;
 
 export function Character({ animationName = 'idle', ...props }) {
     const { scene, animations } = useGLTF(CHARACTER_PATH);
     
-    // Настраиваем PS1-фильтрацию текстур прямо на оригинальной сцене модели
+    // Настраиваем PS1-фильтрацию текстур прямо на оригинальной сцене
     useEffect(() => {
         if (!scene) return;
 
@@ -30,10 +29,10 @@ export function Character({ animationName = 'idle', ...props }) {
         });
     }, [scene]);
 
-    // Подключаем наш гибкий хук управления анимациями
+    // Подключаем хук управления анимациями
     const { playAnimation, updateMixer } = useCharacterAnimations(animations, scene);
 
-    // Синхронизируем изменение пропса animationName с контроллером
+    // Запускаем анимацию только при изменении её имени
     useEffect(() => {
         if (animationName) {
             playAnimation(animationName, 0.3);
@@ -45,8 +44,11 @@ export function Character({ animationName = 'idle', ...props }) {
         updateMixer(delta);
     });
 
-    return <primitive object={scene} {...props} />;
+    return (
+        <group name="Character" {...props}>
+            <primitive object={scene} />
+        </group>
+    );
 }
 
-// Корректная предзагрузка модели с учетом базового путя
 useGLTF.preload(CHARACTER_PATH);

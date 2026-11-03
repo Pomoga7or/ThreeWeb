@@ -10,63 +10,64 @@ export function GameCard({ isOpen, title, message, onConfirm, onClose, confirmTe
       left: 0,
       width: '100vw',
       height: '100vh',
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      backdropFilter: 'blur(4px)',
+      backgroundColor: 'rgba(0, 0, 0, 0.85)',
+      backdropFilter: 'blur(6px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 2000,
       pointerEvents: 'auto',
+      fontFamily: "'Pershotravneva55', monospace",
     }}>
       <style>{`
         @keyframes cardPop {
-          0% { transform: scale(0.9) rotate(-2deg); opacity: 0; }
-          100% { transform: scale(1) rotate(-1deg); opacity: 1; }
+          0% { transform: scale(0.95) rotate(-1deg); opacity: 0; }
+          100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
       `}</style>
 
-      {/* Основное окно карточки */}
+      {/* Окно карточки */}
       <div style={{
         position: 'relative',
-        width: '480px',
-        background: '#0d0d0d',
-        border: '4px solid #222',
-        borderLeft: '8px solid #ff0055',
-        boxShadow: '15px 15px 40px rgba(0,0,0,0.9)',
-        padding: '30px 40px',
-        color: '#ffffff',
-        transform: 'rotate(-1deg)',
-        animation: 'cardPop 0.15s ease-out forwards',
+        width: '520px',
+        background: 'var(--retro-card-bg)',
+        border: '3px solid var(--retro-border)',
+        borderLeft: '10px solid var(--retro-accent)',
+        boxShadow: '0 25px 50px rgba(0,0,0,0.95), inset 0 0 20px rgba(255, 0, 85, 0.05)',
+        padding: '35px 45px',
+        color: 'var(--retro-text)',
+        animation: 'cardPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         boxSizing: 'border-box',
       }}>
         
-        {/* Заголовок карточки */}
+        {/* Заголовок */}
         {title && (
           <div style={{
-            fontSize: '2.2rem',
+            fontSize: '1.8rem',
             letterSpacing: '3px',
-            marginBottom: '15px',
-            color: '#fff',
-            borderBottom: '2px solid #222',
-            paddingBottom: '10px',
+            marginBottom: '18px',
+            color: 'var(--retro-text)',
+            borderBottom: '2px solid var(--retro-border)',
+            paddingBottom: '12px',
             textTransform: 'uppercase',
+            textShadow: '2px 2px #000',
           }}>
             {title}
           </div>
         )}
 
-        {/* Текст / Сообщение */}
+        {/* Текст сообщения */}
         <div style={{
-          fontSize: '1.4rem',
+          fontSize: '1.15rem',
           letterSpacing: '1.5px',
-          lineHeight: '1.4',
-          color: '#ccc',
-          marginBottom: '30px',
+          lineHeight: '1.6',
+          color: 'var(--retro-text-muted)',
+          marginBottom: '35px',
         }}>
           {message}
         </div>
 
-        {/* Блок кнопок управления */}
+        {/* Кнопки */}
         <div style={{
           display: 'flex',
           gap: '15px',
@@ -76,17 +77,23 @@ export function GameCard({ isOpen, title, message, onConfirm, onClose, confirmTe
             <button
               onClick={onClose}
               style={{
-                background: '#1a1a1a',
-                color: '#fff',
-                border: '2px solid #333',
-                padding: '12px 25px',
-                fontSize: '1.2rem',
+                background: '#141414',
+                color: 'var(--retro-text)',
+                border: '2px solid var(--retro-border)',
+                padding: '12px 28px',
+                fontSize: '1rem',
                 letterSpacing: '2px',
                 cursor: 'pointer',
-                transition: 'background 0.1s, transform 0.1s',
+                transition: 'background 0.1s, border-color 0.1s',
               }}
-              onMouseEnter={(e) => e.target.style.background = '#333'}
-              onMouseLeave={(e) => e.target.style.background = '#1a1a1a'}
+              onMouseEnter={(e) => {
+                e.target.style.background = '#222';
+                e.target.style.borderColor = '#444';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = '#141414';
+                e.target.style.borderColor = 'var(--retro-border)';
+              }}
             >
               {cancelText}
             </button>
@@ -95,19 +102,19 @@ export function GameCard({ isOpen, title, message, onConfirm, onClose, confirmTe
           <button
             onClick={onConfirm || onClose}
             style={{
-              background: '#ff0055',
-              color: '#fff',
-              border: '2px solid #ff0055',
-              padding: '12px 30px',
-              fontSize: '1.2rem',
+              background: 'var(--retro-accent)',
+              color: 'var(--retro-text)',
+              border: '2px solid var(--retro-accent)',
+              padding: '12px 32px',
+              fontSize: '1rem',
               letterSpacing: '2px',
               cursor: 'pointer',
               fontWeight: 'bold',
-              boxShadow: '4px 4px 15px rgba(255,0,85,0.4)',
-              transition: 'background 0.1s, transform 0.1s',
+              boxShadow: '0 0 15px rgba(255, 0, 85, 0.4)',
+              transition: 'filter 0.1s, transform 0.1s',
             }}
-            onMouseEnter={(e) => e.target.style.background = '#ff2a6d'}
-            onMouseLeave={(e) => e.target.style.background = '#ff0055'}
+            onMouseEnter={(e) => e.target.style.filter = 'brightness(1.15)'}
+            onMouseLeave={(e) => e.target.style.filter = 'brightness(1)'}
           >
             {confirmText}
           </button>
