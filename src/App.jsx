@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { MainMenu } from './components/MainMenu';
 import { GameCard } from './components/GameCard';
+import { RetroLoader } from './components/RetroLoader';
 import { Scene } from './canvas/Scene';
 import { useGameStore } from './store/useGameStore';
 
@@ -53,6 +54,9 @@ export function App() {
   return (
     <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', margin: 0, padding: 0, background: '#000' }}>
 
+      {/* Экран загрузки ассетов */}
+      <RetroLoader />
+
       {/* UI Главное Меню */}
       {!isPlaying && (
         <MainMenu
@@ -85,7 +89,7 @@ export function App() {
       {/* 3D Canvas */}
       <Canvas
         style={{ width: '100vw', height: '100vh', background: '#111' }}
-        dpr={[1, 2]}
+        dpr={[1, 1]}
         gl={{ antialias: true, powerPreference: "high-performance" }}
       >
         <Scene />
