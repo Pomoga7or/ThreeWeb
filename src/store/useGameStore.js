@@ -1,21 +1,30 @@
 import { create } from 'zustand';
 
 export const useGameStore = create((set) => ({
-  // Состояние игры
   isPlaying: false,
   setIsPlaying: (playing) => set({ isPlaying: playing }),
 
-  // Текущая анимация персонажа
   characterAnimation: 'idle',
   setCharacterAnimation: (anim) => set({ characterAnimation: anim }),
 
-  // Настройки графики и звука (на будущее)
+  activeInteractable: null,
+  setActiveInteractable: (id) => set({ activeInteractable: id }),
+
+  cameraTarget: 'Character',
+  setCameraTarget: (target) => set({ cameraTarget: target }),
+
+  debugOrbit: false,
+  setDebugOrbit: (enabled) => set({ debugOrbit: enabled }),
+
   settings: {
-    graphicsQuality: 'high', // 'high' | 'low' (для слабых устройств)
+    graphicsQuality: 'high',
     masterVolume: 0.8,
     musicMuted: false,
+    crtEnabled: true,
   },
-  
-  updateSettings: (newSettings) => 
-    set((state) => ({ settings: { ...state.settings, ...newSettings } })),
+
+  updateSettings: (newSettings) =>
+    set((state) => ({
+      settings: { ...state.settings, ...newSettings },
+    })),
 }));

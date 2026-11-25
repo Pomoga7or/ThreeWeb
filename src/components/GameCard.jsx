@@ -10,8 +10,11 @@ export function GameCard({ isOpen, title, message, onConfirm, onClose, confirmTe
       left: 0,
       width: '100vw',
       height: '100vh',
-      backgroundColor: 'rgba(0, 0, 0, 0.85)',
-      backdropFilter: 'blur(6px)',
+      // backgroundColor: 'rgba(0, 0, 0, 0.85)',
+      backgroundColor: 'rgba(0, 0, 0, 0)',
+
+      // backdropFilter: 'blur(6px)',
+      backdropFilter: 'blur(0)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -77,7 +80,8 @@ export function GameCard({ isOpen, title, message, onConfirm, onClose, confirmTe
             <button
               onClick={onClose}
               style={{
-                background: '#141414',
+                // background: '#141414',
+                background: '#14141400',
                 color: 'var(--retro-text)',
                 border: '2px solid var(--retro-border)',
                 padding: '12px 28px',

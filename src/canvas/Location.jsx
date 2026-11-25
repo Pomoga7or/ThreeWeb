@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -6,17 +6,19 @@ import { KTX2Loader } from 'three-stdlib';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { createPS1Material } from '../shaders/ps1/ps1Material';
 import { Fire } from './Fire';
+import { useGameStore } from '../store/useGameStore';
 
 // Безопасный абсолютный путь с учетом префикса репозитория
 const MODEL_PATH = `${import.meta.env.BASE_URL}models/location.glb`;
 
 export function Location(props) {
     const gl = useThree((state) => state.gl);
+    const graphicsQuality = useGameStore((state) => state.settings.graphicsQuality);
 
     // Подключаем MeshoptDecoder через callback-функцию загрузчика
     const { scene } = useGLTF(MODEL_PATH, undefined, (loader) => {
         loader.setMeshoptDecoder(MeshoptDecoder);
-        
+
         const ktx2Loader = new KTX2Loader();
         ktx2Loader.setTranscoderPath(`${import.meta.env.BASE_URL}basis/`);
         ktx2Loader.detectSupport(gl);
@@ -25,9 +27,14 @@ export function Location(props) {
 
     const [firePosition, setFirePosition] = useState(null);
 
-    const clonedScene = useMemo(() => {
+    const { clonedScene, foundFirePos } = useMemo(() => {
         const clone = scene.clone(true);
         let lastFirePos = null;
+
+        const ps1Resolution =
+            graphicsQuality === 'low'
+                ? new THREE.Vector2(200.0, 200.0)
+                : new THREE.Vector2(340.0, 340.0);
 
         clone.traverse((child) => {
             if (child.isMesh) {
@@ -35,10 +42,12 @@ export function Location(props) {
                 const meshName = child.name ? child.name.toLowerCase() : '';
 
                 if (meshName.includes('firebarrel')) {
+                    child.name = 'fireBarrel'; // Принудительное имя для глобального поиска
+
                     const box = new THREE.Box3().setFromObject(child);
                     const center = new THREE.Vector3();
                     box.getCenter(center);
-                    
+
                     lastFirePos = [center.x, box.max.y - 0.2, center.z];
                 }
 
@@ -56,17 +65,27 @@ export function Location(props) {
                     uTexture: mat.map || new THREE.Texture(),
                     uHasTexture: hasTex,
                     uColor: new THREE.Color(...color),
-                    uResolution: new THREE.Vector2(340.0, 340.0),
+                    uResolution: ps1Resolution,
                 });
             }
         });
 
-        if (lastFirePos) {
-            setFirePosition(lastFirePos);
-        }
+        return { clonedScene: clone, foundFirePos: lastFirePos };
+    }, [scene, graphicsQuality]);
 
-        return clone;
-    }, [scene]);
+    useEffect(() => {
+        setFirePosition(foundFirePos);
+    }, [foundFirePos]);
+
+    useEffect(() => {
+        return () => {
+            clonedScene.traverse((child) => {
+                if (child.isMesh && child.material && typeof child.material.dispose === 'function') {
+                    child.material.dispose();
+                }
+            });
+        };
+    }, [clonedScene]);
 
     return (
         <group {...props}>
