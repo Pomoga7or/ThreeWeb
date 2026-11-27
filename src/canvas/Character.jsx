@@ -3,52 +3,62 @@ import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useCharacterAnimations } from '../hooks/useCharacterAnimation';
+import { CharacterMarker } from './CharacterMarker';
 
 const CHARACTER_PATH = `${import.meta.env.BASE_URL}models/characterNotOpimized.glb`;
 
-export function Character({ animationName = 'idle', ...props }) {
-    const { scene, animations } = useGLTF(CHARACTER_PATH);
-    
-    // Настраиваем PS1-фильтрацию текстур прямо на оригинальной сцене
-    useEffect(() => {
-        if (!scene) return;
+export function Character({
+  animationName = 'idle',
+  showMarker = false,
+  markerOffset = [0, 1.35, 0],
+  onMarkerClick,
+  ...props
+}) {
+  const { scene, animations } = useGLTF(CHARACTER_PATH);
 
-        scene.traverse((child) => {
-            if (child.isMesh && child.material) {
-                const materials = Array.isArray(child.material) ? child.material : [child.material];
+  useEffect(() => {
+    if (!scene) return;
 
-                materials.forEach((mat) => {
-                    if (mat.map) {
-                        mat.map.generateMipmaps = false;
-                        mat.map.minFilter = THREE.NearestFilter;
-                        mat.map.magFilter = THREE.NearestFilter;
-                        mat.map.needsUpdate = true;
-                    }
-                });
-            }
+    scene.traverse((child) => {
+      if (child.isMesh && child.material) {
+        const materials = Array.isArray(child.material)
+          ? child.material
+          : [child.material];
+
+        materials.forEach((mat) => {
+          if (mat.map) {
+            mat.map.generateMipmaps = false;
+            mat.map.minFilter = THREE.NearestFilter;
+            mat.map.magFilter = THREE.NearestFilter;
+            mat.map.needsUpdate = true;
+          }
         });
-    }, [scene]);
-
-    // Подключаем хук управления анимациями
-    const { playAnimation, updateMixer } = useCharacterAnimations(animations, scene);
-
-    // Запускаем анимацию только при изменении её имени
-    useEffect(() => {
-        if (animationName) {
-            playAnimation(animationName, 0.3);
-        }
-    }, [animationName, playAnimation]);
-
-    // Тикаем миксер каждый кадр
-    useFrame((state, delta) => {
-        updateMixer(delta);
+      }
     });
+  }, [scene]);
 
-    return (
-        <group name="Character" {...props}>
-            <primitive object={scene} />
-        </group>
-    );
+  const { playAnimation, updateMixer } = useCharacterAnimations(animations, scene);
+
+  useEffect(() => {
+    if (animationName) {
+      playAnimation(animationName, 0.3);
+    }
+  }, [animationName, playAnimation]);
+
+  useFrame((_, delta) => {
+    updateMixer(delta);
+  });
+
+  return (
+    <group name="Character" {...props}>
+      <primitive object={scene} />
+      <CharacterMarker
+        position={markerOffset}
+        visible={showMarker}
+        onClick={onMarkerClick}
+      />
+    </group>
+  );
 }
 
 useGLTF.preload(CHARACTER_PATH);

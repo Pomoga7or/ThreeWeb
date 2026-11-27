@@ -11,7 +11,7 @@ const WORLD_UP = new THREE.Vector3(0, 1, 0);
 export function CameraController({
   targetPos = DEFAULT_POS,
   targetLookAt = DEFAULT_LOOK_AT,
-  parallax = 0.08,
+  parallax = 0.02,
   minFloorY = -0.35,
   isEnabled = true,
   isFocused = false,
@@ -19,26 +19,35 @@ export function CameraController({
   const controlsRef = useRef();
   const { camera, pointer } = useThree();
   const debugOrbit = useGameStore((state) => state.debugOrbit);
+  const activeInteractable = useGameStore((state) => state.activeInteractable);
 
   const desiredPos = useRef(new THREE.Vector3(...DEFAULT_POS));
   const desiredLookAt = useRef(new THREE.Vector3(...DEFAULT_LOOK_AT));
   const currentLookAt = useRef(new THREE.Vector3(...DEFAULT_LOOK_AT));
   const goalPos = useRef(new THREE.Vector3(...DEFAULT_POS));
+  const isUserDraggingOrbit = useRef(false);
+  const shouldMoveToTarget = useRef(false);
 
   useEffect(() => {
     if (Array.isArray(targetPos) && targetPos.length === 3) {
       desiredPos.current.set(targetPos[0], targetPos[1], targetPos[2]);
+      shouldMoveToTarget.current = true;
     }
-  }, [targetPos[0], targetPos[1], targetPos[2]]);
+  }, [targetPos[0], targetPos[1], targetPos[2], activeInteractable]);
 
   useEffect(() => {
     if (Array.isArray(targetLookAt) && targetLookAt.length === 3) {
       desiredLookAt.current.set(targetLookAt[0], targetLookAt[1], targetLookAt[2]);
+      shouldMoveToTarget.current = true;
     }
-  }, [targetLookAt[0], targetLookAt[1], targetLookAt[2]]);
+  }, [targetLookAt[0], targetLookAt[1], targetLookAt[2], activeInteractable]);
 
   useEffect(() => {
-    if (!debugOrbit && controlsRef.current) {
+    if (!controlsRef.current) return;
+    if (debugOrbit) {
+      controlsRef.current.target.copy(currentLookAt.current);
+      controlsRef.current.update();
+    } else {
       currentLookAt.current.copy(controlsRef.current.target);
     }
   }, [debugOrbit]);
@@ -61,16 +70,22 @@ export function CameraController({
   }, [camera]);
 
   useFrame((_, delta) => {
-    if (!isEnabled || debugOrbit) return;
+    if (!isEnabled) return;
+    if (debugOrbit && isUserDraggingOrbit.current) return;
+    if (debugOrbit && !shouldMoveToTarget.current) return;
 
     const step = Math.min(1, delta * 6);
 
-    if (isFocused) {
+    if (isFocused || debugOrbit) {
       goalPos.current.copy(desiredPos.current);
     } else {
+      const dist = desiredPos.current.distanceTo(desiredLookAt.current);
+      const distanceScale = THREE.MathUtils.clamp(dist / 1.5, 0.1, 1.5);
+      const scaledParallax = parallax * distanceScale;
+
       goalPos.current.set(
-        desiredPos.current.x + pointer.x * parallax,
-        desiredPos.current.y + pointer.y * parallax,
+        desiredPos.current.x + pointer.x * scaledParallax,
+        desiredPos.current.y + pointer.y * scaledParallax,
         desiredPos.current.z
       );
     }
@@ -94,6 +109,16 @@ export function CameraController({
 
     if (controlsRef.current) {
       controlsRef.current.target.copy(currentLookAt.current);
+      if (debugOrbit) {
+        controlsRef.current.update();
+      }
+    }
+
+    if (
+      camera.position.distanceTo(goalPos.current) < 0.001 &&
+      currentLookAt.current.distanceTo(desiredLookAt.current) < 0.001
+    ) {
+      shouldMoveToTarget.current = false;
     }
   });
 
@@ -106,6 +131,14 @@ export function CameraController({
       maxPolarAngle={Math.PI * 0.48}
       minDistance={0.1}
       maxDistance={30}
+      onStart={() => {
+        isUserDraggingOrbit.current = true;
+        shouldMoveToTarget.current = false;
+      }}
+      onEnd={() => {
+        isUserDraggingOrbit.current = false;
+        currentLookAt.current.copy(controlsRef.current.target);
+      }}
     />
   );
 }

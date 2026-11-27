@@ -17,8 +17,9 @@ export const useGameStore = create((set) => ({
   setDebugOrbit: (enabled) => set({ debugOrbit: enabled }),
 
   settings: {
+    language: 'ru',
     graphicsQuality: 'high',
-    masterVolume: 0.8,
+    masterVolume: 0.35,
     musicMuted: false,
     crtEnabled: true,
   },

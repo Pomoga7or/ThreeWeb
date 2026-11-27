@@ -14,6 +14,7 @@ export function Scene() {
   const setCharacterAnimation = useGameStore((state) => state.setCharacterAnimation);
   const activeInteractable = useGameStore((state) => state.activeInteractable);
   const setActiveInteractable = useGameStore((state) => state.setActiveInteractable);
+  const debugOrbit = useGameStore((state) => state.debugOrbit);
 
   const selectedItem = useMemo(
     () => INTERACTABLES.find((item) => item.id === activeInteractable) || null,
@@ -48,6 +49,7 @@ export function Scene() {
         targetPos={targetPos}
         targetLookAt={targetLookAt}
         isEnabled={isPlaying}
+        isFocused={Boolean(selectedItem)}
       />
 
       <SkyDome />
@@ -60,7 +62,13 @@ export function Scene() {
 
         <Character
           animationName={characterAnimation}
-          position={[-0.45, -0.09, 0.3]}
+          position={[-0.35, -0.22, 0.4]}
+          rotation={[0, -0.4, 0]}
+          showMarker={isPlaying && !activeInteractable && !debugOrbit}
+          onMarkerClick={() => {
+            if (!isPlaying || !aboutItem) return;
+            handleSelectItem(aboutItem);
+          }}
           onClick={(e) => {
             if (!isPlaying || !aboutItem) return;
             e.stopPropagation();
