@@ -9,36 +9,74 @@ export function CharacterDialogue({
 }) {
   const lang = useGameStore((state) => state.settings.language) || 'ru';
   const setCharacterAnimation = useGameStore((state) => state.setCharacterAnimation);
+  const seenDialogueNodes = useGameStore((state) => state.seenDialogueNodes);
+  const markDialogueNodeSeen = useGameStore((state) => state.markDialogueNodeSeen);
+  const lastVisitedLocation = useGameStore((state) => state.lastVisitedLocation);
+  const clearLastVisitedLocation = useGameStore((state) => state.clearLastVisitedLocation);
 
   const [nodeId, setNodeId] = useState(ABOUT_DIALOGUE.startNodeId);
+  const [history, setHistory] = useState([]);
   const [hoveredChoiceId, setHoveredChoiceId] = useState(null);
   const [typedLength, setTypedLength] = useState(0);
-
-  useEffect(() => {
-    if (isOpen) {
-      setNodeId(ABOUT_DIALOGUE.startNodeId);
-      setHoveredChoiceId(null);
-    }
-  }, [isOpen]);
+  const [activeText, setActiveText] = useState('');
 
   const currentNode = ABOUT_DIALOGUE.nodes[nodeId] || ABOUT_DIALOGUE.nodes.root;
-  const fullText = currentNode.text?.[lang] || currentNode.text?.ru || '';
 
   useEffect(() => {
-    if (isOpen && currentNode?.anim) {
+    if (!isOpen) return;
+
+    const rootNode = ABOUT_DIALOGUE.nodes[ABOUT_DIALOGUE.startNodeId];
+    setNodeId(ABOUT_DIALOGUE.startNodeId);
+    setHistory([]);
+    setHoveredChoiceId(null);
+
+    const reaction =
+      lastVisitedLocation && rootNode?.locationReactions?.[lastVisitedLocation];
+
+    if (reaction) {
+      setActiveText(reaction[lang] || reaction.ru || '');
+      clearLastVisitedLocation();
+    } else if (seenDialogueNodes.includes(rootNode.id) && rootNode.revisitText) {
+      setActiveText(rootNode.revisitText[lang] || rootNode.revisitText.ru || '');
+    } else {
+      setActiveText(rootNode.text?.[lang] || rootNode.text?.ru || '');
+    }
+
+    if (rootNode.anim) {
+      setCharacterAnimation(rootNode.anim);
+    }
+
+    markDialogueNodeSeen(rootNode.id);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !currentNode) return;
+
+    if (currentNode.anim) {
       setCharacterAnimation(currentNode.anim);
     }
-  }, [isOpen, currentNode, setCharacterAnimation]);
+
+    if (currentNode.id !== ABOUT_DIALOGUE.startNodeId) {
+      const alreadySeen = seenDialogueNodes.includes(currentNode.id);
+      const sourceText =
+        alreadySeen && currentNode.revisitText
+          ? currentNode.revisitText
+          : currentNode.text;
+
+      setActiveText(sourceText?.[lang] || sourceText?.ru || '');
+      markDialogueNodeSeen(currentNode.id);
+    }
+  }, [nodeId, lang]);
 
   useEffect(() => {
     if (!isOpen) return;
     setTypedLength(0);
 
-    if (!fullText) return;
+    if (!activeText) return;
 
     const interval = setInterval(() => {
       setTypedLength((prev) => {
-        if (prev >= fullText.length) {
+        if (prev >= activeText.length) {
           clearInterval(interval);
           return prev;
         }
@@ -47,16 +85,26 @@ export function CharacterDialogue({
     }, 16);
 
     return () => clearInterval(interval);
-  }, [isOpen, nodeId, fullText]);
+  }, [isOpen, activeText]);
 
   if (!isOpen) return null;
 
-  const isTypingDone = typedLength >= fullText.length;
-  const visibleText = isTypingDone ? fullText : fullText.slice(0, typedLength);
+  const isTypingDone = typedLength >= activeText.length;
+  const visibleText = isTypingDone ? activeText : activeText.slice(0, typedLength);
 
   const handleTextClick = () => {
     if (!isTypingDone) {
-      setTypedLength(fullText.length);
+      setTypedLength(activeText.length);
+    }
+  };
+
+  const handleStepBack = () => {
+    if (history.length > 0) {
+      const prevId = history[history.length - 1];
+      setHistory((prev) => prev.slice(0, -1));
+      setNodeId(prevId);
+    } else {
+      onClose();
     }
   };
 
@@ -66,6 +114,7 @@ export function CharacterDialogue({
       return;
     }
     if (choice.nextId && ABOUT_DIALOGUE.nodes[choice.nextId]) {
+      setHistory((prev) => [...prev, nodeId]);
       setNodeId(choice.nextId);
     }
   };
@@ -96,7 +145,6 @@ export function CharacterDialogue({
         pointerEvents: 'auto',
       }}
     >
-      {/* Верхняя полоса без спикера: узел диалога + быстрые действия */}
       <div
         style={{
           display: 'flex',
@@ -119,23 +167,21 @@ export function CharacterDialogue({
         </span>
 
         <div style={{ display: 'flex', gap: '8px' }}>
-          {nodeId !== ABOUT_DIALOGUE.startNodeId && (
-            <button
-              type="button"
-              onClick={() => setNodeId(ABOUT_DIALOGUE.startNodeId)}
-              style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                color: 'var(--retro-text, #f5f5f5)',
-                border: '1px solid var(--retro-border, #888)',
-                padding: '4px 10px',
-                fontSize: '0.75rem',
-                letterSpacing: '1.5px',
-                cursor: 'pointer',
-              }}
-            >
-              {lang === 'en' ? 'START' : 'В НАЧАЛО'}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleStepBack}
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              color: 'var(--retro-text, #f5f5f5)',
+              border: '1px solid var(--retro-border, #888)',
+              padding: '4px 10px',
+              fontSize: '0.75rem',
+              letterSpacing: '1.5px',
+              cursor: 'pointer',
+            }}
+          >
+            {lang === 'en' ? 'BACK' : 'НАЗАД'}
+          </button>
 
           <button
             type="button"
@@ -155,7 +201,6 @@ export function CharacterDialogue({
         </div>
       </div>
 
-      {/* Реплика персонажа */}
       <div
         onClick={handleTextClick}
         title={!isTypingDone ? (lang === 'en' ? 'Click to skip' : 'Кликни, чтобы дописать') : undefined}
@@ -189,7 +234,6 @@ export function CharacterDialogue({
         </p>
       </div>
 
-      {/* Варианты ответа */}
       <div
         style={{
           display: 'flex',
@@ -201,6 +245,8 @@ export function CharacterDialogue({
           const choiceLabel = choice.label?.[lang] || choice.label?.ru || '';
           const isHovered = hoveredChoiceId === choice.id;
           const isLocationJump = Boolean(choice.actionLocation);
+          const isSeenBranch =
+            Boolean(choice.nextId) && seenDialogueNodes.includes(choice.nextId);
 
           return (
             <button
@@ -218,7 +264,7 @@ export function CharacterDialogue({
                   : isLocationJump
                     ? 'rgba(184, 20, 20, 0.35)'
                     : 'rgba(255, 255, 255, 0.04)',
-                color: 'var(--retro-text, #f5f5f5)',
+                color: isSeenBranch && !isHovered ? '#b5b5bd' : 'var(--retro-text, #f5f5f5)',
                 border: isHovered
                   ? '1px solid #99fd47'
                   : '1px solid rgba(255, 255, 255, 0.28)',
@@ -226,7 +272,9 @@ export function CharacterDialogue({
                   ? '5px solid var(--retro-accent, #ff3b3b)'
                   : isHovered
                     ? '5px solid #99fd47'
-                    : '5px solid transparent',
+                    : isSeenBranch
+                      ? '5px solid rgba(153, 253, 71, 0.45)'
+                      : '5px solid transparent',
                 padding: '10px 14px',
                 fontSize: '0.92rem',
                 lineHeight: 1.35,
@@ -245,6 +293,17 @@ export function CharacterDialogue({
                 {isHovered ? '▶' : `${idx + 1}.`}
               </span>
               {choiceLabel}
+              {isSeenBranch && (
+                <span
+                  style={{
+                    marginLeft: '8px',
+                    fontSize: '0.72rem',
+                    opacity: 0.7,
+                  }}
+                >
+                  [{lang === 'en' ? 'READ' : 'ЧИТАНО'}]
+                </span>
+              )}
             </button>
           );
         })}

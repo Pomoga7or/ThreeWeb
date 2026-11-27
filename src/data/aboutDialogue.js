@@ -3,14 +3,32 @@ export const ABOUT_DIALOGUE = {
   nodes: {
     root: {
       id: 'root',
-      anim: 'Sitting',
+      anim: 'justSit',
       speaker: {
-        ru: 'ТЫ (НА КОВРЕ)',
-        en: 'YOU (ON THE RUG)',
+        ru: 'АНДРЕЙ БАРСУКОВ // БАРСУК',
+        en: 'ANDREY BARSUKOV // BADGER',
       },
       text: {
-        ru: 'Здарова. Проходи, не стой на сквозняке. Ковёр чистый — почти. Что хотел узнать: кто я, как дошёл до такого двора или почему я вообще здесь сижу?',
-        en: 'Yo. Come on in, don’t block the draft. The rug’s clean — mostly. What do you want to know: who I am, how I ended up in this yard, or why I’m even sitting here?',
+        ru: 'Здарова. Андрей Барсуков, для своих — барсук. Проходи, не стой на сквозняке. Ковёр чистый — почти. Что хотел узнать: кто я, как дошёл до такого двора или почему я вообще здесь сижу?',
+        en: 'Yo. Andrey Barsukov, or badger to people who know me. Come in, don’t block the draft. The rug’s clean — mostly. What do you want to know: who I am, how I ended up in this yard, or why I’m even sitting here?',
+      },
+      revisitText: {
+        ru: 'Опять ты. Ковёр всё там же, сквозняк не поменялся. Что ещё спросим или куда крутим камеру?',
+        en: 'You again. Rug’s still there, draft hasn’t changed. What else we asking or where do we point the camera?',
+      },
+      locationReactions: {
+        contacts: {
+          ru: 'Видел, подходил к трубе с контактами. Ну чё — звонить или писать будешь, или чисто приценился и пошёл дальше?',
+          en: 'Saw you checking the phone and contacts. So — gonna call or message, or just sizing up the number and moving on?',
+        },
+        stack: {
+          ru: 'Заценил телек со стеком? Основной упор у меня на фронтенд и интерфейсы — если есть задачи или команда на примете, маякуй.',
+          en: 'Checked out the TV stack? My main focus is frontend and UI — if you’ve got tasks or a team in mind, hit me up.',
+        },
+        minigame: {
+          ru: 'Ну как аркадный автомат? Не залип там на пару часов вместо просмотра остального?',
+          en: 'How’s the arcade cabinet? Didn’t get stuck there for a couple hours instead of checking the rest?',
+        },
       },
       choices: [
         {
@@ -24,10 +42,18 @@ export const ABOUT_DIALOGUE = {
         {
           id: 'who_am_i',
           label: {
-            ru: 'Расскажи про опыт и стек',
-            en: 'Tell me about your experience & stack',
+            ru: 'Расскажи про опыт, фронтенд и платы',
+            en: 'Tell me about experience, frontend & boards',
           },
           nextId: 'career_reply',
+        },
+        {
+          id: 'work_status',
+          label: {
+            ru: 'Ищешь работу или подработку?',
+            en: 'Looking for full-time or side gigs?',
+          },
+          nextId: 'work_status_reply',
         },
         {
           id: 'ps1_yard',
@@ -52,12 +78,16 @@ export const ABOUT_DIALOGUE = {
       id: 'why_sitting_reply',
       anim: 'SittingDisapproval',
       speaker: {
-        ru: 'ТЫ (НА КОВРЕ)',
-        en: 'YOU (ON THE RUG)',
+        ru: 'АНДРЕЙ БАРСУКОВ // БАРСУК',
+        en: 'ANDREY BARSUKOV // BADGER',
       },
       text: {
-        ru: 'Жду, когда на нормальную работу возьмут, а пока греюсь у бочки и двигаю пиксели. В резюме вроде всё ровно, но HR иногда смотрит так, будто я пытаюсь закоммитить ковёр в прод.',
-        en: 'Waiting to land a solid gig while warming up by the barrel and pushing pixels. Resume looks legit, yet HR sometimes stares like I’m trying to commit a rug to prod.',
+        ru: 'Жду, когда на нормальную работу возьмут, а пока греюсь у бочки и двигаю пиксели. В резюме вроде всё ровно, но иногда ощущение, что я пытаюсь закоммитить ковёр в прод.',
+        en: 'Waiting to land a solid gig while warming up by the barrel and pushing pixels. Resume looks legit, yet sometimes it feels like I’m trying to commit a rug to prod.',
+      },
+      revisitText: {
+        ru: 'Да всё то же самое: ищу фулл-тайм, параллельно не против подработки, пока греюсь у бочки.',
+        en: 'Same deal: looking for full-time, open to side gigs on the side while warming up by the barrel.',
       },
       choices: [
         {
@@ -69,12 +99,12 @@ export const ABOUT_DIALOGUE = {
           nextId: 'barrel_joke',
         },
         {
-          id: 'back_to_career',
+          id: 'sitting_to_work',
           label: {
-            ru: 'Ладно, давай по делу — что умеешь?',
-            en: 'Alright, seriously — what do you do?',
+            ru: 'Насчёт фулл-тайма и подработки поподробнее',
+            en: 'More on full-time and side gigs',
           },
-          nextId: 'career_reply',
+          nextId: 'work_status_reply',
         },
         {
           id: 'back_root',
@@ -89,14 +119,18 @@ export const ABOUT_DIALOGUE = {
 
     barrel_joke: {
       id: 'barrel_joke',
-      anim: 'idle',
+      anim: 'justSit',
       speaker: {
-        ru: 'ТЫ (НА КОВРЕ)',
-        en: 'YOU (ON THE RUG)',
+        ru: 'АНДРЕЙ БАРСУКОВ // БАРСУК',
+        en: 'ANDREY BARSUKOV // BADGER',
       },
       text: {
-        ru: 'Дымит, но это бесплатный постпроцессинг. Зато кадры греет и атмосферу держит лучше любого корпоративного тимбилдинга.',
-        en: 'It smokes, yeah, consider it free post-processing. Keeps the vibe alive better than any corporate team-building.',
+        ru: 'Дымит, но это бесплатный постпроцессинг. Зато кадры греет и атмосферу держит лучше любого корпоративного тимбилдинга и созвонов на час ни о чём.',
+        en: 'It smokes, yeah, consider it free post-processing. Keeps the vibe alive better than any corporate team-building or one-hour sync about nothing.',
+      },
+      revisitText: {
+        ru: 'Дым всё так же крутит — бесплатный постпроцессинг без лишних затрат.',
+        en: 'Still smoking — free post-processing at zero extra cost.',
       },
       choices: [
         {
@@ -122,12 +156,16 @@ export const ABOUT_DIALOGUE = {
       id: 'career_reply',
       anim: 'Sitting',
       speaker: {
-        ru: 'ТЫ (НА КОВРЕ)',
-        en: 'YOU (ON THE RUG)',
+        ru: 'АНДРЕЙ БАРСУКОВ // БАРСУК',
+        en: 'ANDREY BARSUKOV // BADGER',
       },
       text: {
-        ru: 'Делаю фронтенд и интерфейсы: React, TypeScript, Next.js, Vue, Three.js / WebGL, плюс бэк на Node.js и базы. А по образованию вообще ковырял железо и FPGA на SystemVerilog — поэтому люблю, когда всё работает чётко и без лишнего мусора.',
-        en: 'I build frontend and UIs: React, TypeScript, Next.js, Vue, Three.js / WebGL, plus Node.js and databases on the backend. My background actually covers digital hardware and FPGA in SystemVerilog — so I like things clean and deterministic.',
+        ru: 'Основной упор — фронтенд и интерфейсы: React, TypeScript, Next.js, Vue, анимации и Three.js / WebGL, плюс бэк на Node.js и базы. А по образованию вообще ковырял железо, платы и FPGA на SystemVerilog — поэтому люблю, когда всё работает чётко и без лишнего мусора.',
+        en: 'Main focus is frontend and UI: React, TypeScript, Next.js, Vue, animations, and Three.js / WebGL, plus Node.js and databases on the backend. My degree is actually in hardware, boards, and FPGA in SystemVerilog — so I like things clean and deterministic.',
+      },
+      revisitText: {
+        ru: 'Коротко: делаю фронтенд и интерфейсы (включая 3D), а платы и FPGA — это по образованию. Никакого лишнего хлама.',
+        en: 'In short: frontend and UI (including 3D), while boards and FPGA are from my degree. No unnecessary bloat.',
       },
       choices: [
         {
@@ -157,16 +195,55 @@ export const ABOUT_DIALOGUE = {
       ],
     },
 
+    work_status_reply: {
+      id: 'work_status_reply',
+      anim: 'Sitting',
+      speaker: {
+        ru: 'АНДРЕЙ БАРСУКОВ // БАРСУК',
+        en: 'ANDREY BARSUKOV // BADGER',
+      },
+      text: {
+        ru: 'Ищу фулл-тайм на фронтенд и интерфейсы, но если есть живая подработка или конкретная задача — тоже готов подключиться. Заходи к телефону (04), если по делу.',
+        en: 'Looking for full-time in frontend and UI, though if there’s a solid side gig or a concrete task, I’m down to hop in too. Check the phone (04) if you’ve got something real.',
+      },
+      revisitText: {
+        ru: 'Фулл-тайм ищу в первую очередь, подработку тоже рассматриваю. Барсук на связи.',
+        en: 'Full-time is first priority, side gigs are open too. Badger’s around.',
+      },
+      choices: [
+        {
+          id: 'work_to_contacts',
+          label: {
+            ru: 'Пойти к телефону за контактами (04)',
+            en: 'Head to the phone for contacts (04)',
+          },
+          actionLocation: 'contacts',
+        },
+        {
+          id: 'work_to_root',
+          label: {
+            ru: 'Вернуться к началу',
+            en: 'Back to the start',
+          },
+          nextId: 'root',
+        },
+      ],
+    },
+
     yard_lore_reply: {
       id: 'yard_lore_reply',
       anim: 'Sitting',
       speaker: {
-        ru: 'ТЫ (НА КОВРЕ)',
-        en: 'YOU (ON THE RUG)',
+        ru: 'АНДРЕЙ БАРСУКОВ // БАРСУК',
+        en: 'ANDREY BARSUKOV // BADGER',
       },
       text: {
         ru: 'Скучно делать одинаковые страницы с карточками и градиентами. В PS1 и старом дворе есть характер: низкое разрешение, жёсткие тени, живой свет от огня и ощущение, что ты попал в чужой район, а не в шаблон.',
         en: 'Generic landing pages with identical cards get boring fast. PS1 and a gritty yard have character: chunky pixels, harsh contrast, live firelight, and a place that feels like a real spot instead of a template.',
+      },
+      revisitText: {
+        ru: 'Всё так же: живой двор вместо скучного шаблона. Можем глянуть аркаду или другие точки.',
+        en: 'Same thing: a living yard instead of a dull template. We can check the arcade or other spots.',
       },
       choices: [
         {
@@ -198,14 +275,18 @@ export const ABOUT_DIALOGUE = {
 
     locations_hub: {
       id: 'locations_hub',
-      anim: 'Sitting',
+      anim: 'justSit',
       speaker: {
-        ru: 'ТЫ (НА КОВРЕ)',
-        en: 'YOU (ON THE RUG)',
+        ru: 'АНДРЕЙ БАРСУКОВ // БАРСУК',
+        en: 'ANDREY BARSUKOV // BADGER',
       },
       text: {
         ru: 'Выбирай, куда крутим камеру: телек со стеком, труба с контактами или аркадный автомат. Можно и кнопками внизу.',
         en: 'Pick where we point the camera: TV for the stack, phone for contacts, or the arcade cabinet. Bottom buttons work too.',
+      },
+      revisitText: {
+        ru: 'Куда теперь крутим? Телек, телефон или автомат.',
+        en: 'Where to next? TV, phone, or cabinet.',
       },
       choices: [
         {

@@ -8,7 +8,37 @@ export const useGameStore = create((set) => ({
   setCharacterAnimation: (anim) => set({ characterAnimation: anim }),
 
   activeInteractable: null,
-  setActiveInteractable: (id) => set({ activeInteractable: id }),
+  setActiveInteractable: (id) =>
+    set((state) => {
+      const prevId = state.activeInteractable;
+      const nextVisited =
+        id && !state.visitedLocations.includes(id)
+          ? [...state.visitedLocations, id]
+          : state.visitedLocations;
+
+      const nextLastVisited =
+        id === 'about' && prevId && prevId !== 'about'
+          ? prevId
+          : state.lastVisitedLocation;
+
+      return {
+        activeInteractable: id,
+        visitedLocations: nextVisited,
+        lastVisitedLocation: nextLastVisited,
+      };
+    }),
+
+  seenDialogueNodes: [],
+  markDialogueNodeSeen: (nodeId) =>
+    set((state) =>
+      state.seenDialogueNodes.includes(nodeId)
+        ? state
+        : { seenDialogueNodes: [...state.seenDialogueNodes, nodeId] }
+    ),
+
+  visitedLocations: [],
+  lastVisitedLocation: null,
+  clearLastVisitedLocation: () => set({ lastVisitedLocation: null }),
 
   cameraTarget: 'Character',
   setCameraTarget: (target) => set({ cameraTarget: target }),

@@ -47,6 +47,21 @@ export function App() {
     setCharacterAnimation('Sitting');
   };
 
+  const handleBackToAbout = () => {
+    if (!activeInteractable) return;
+
+    if (activeInteractable === 'about') {
+      handleResetOverview();
+      return;
+    }
+
+    const aboutItem = INTERACTABLES.find((item) => item.id === 'about');
+    setActiveInteractable('about');
+    if (aboutItem?.characterAnim) {
+      setCharacterAnimation(aboutItem.characterAnim);
+    }
+  };
+
   const handleStart = () => {
     setIsPlaying(true);
     setCharacterAnimation('Sitting');
@@ -151,6 +166,26 @@ export function App() {
             pointerEvents: 'auto',
           }}
         >
+          {activeInteractable && (
+            <button
+              type="button"
+              onClick={handleBackToAbout}
+              style={{
+                background: 'var(--retro-card-bg)',
+                color: 'var(--retro-text)',
+                border: '2px solid var(--retro-border)',
+                borderLeft: '6px solid var(--retro-accent)',
+                padding: '8px 12px',
+                fontSize: '0.85rem',
+                letterSpacing: '1.5px',
+                cursor: 'pointer',
+                boxShadow: '4px 4px 0px #000',
+              }}
+            >
+              {lang === 'en' ? 'BACK' : 'НАЗАД'}
+            </button>
+          )}
+
           <button
             onClick={handleResetOverview}
             style={{
