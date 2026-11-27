@@ -33,7 +33,10 @@ html, body {
 *::after {
   font-family: 'Pershotravneva55', sans-serif !important;
 }
-
+.character-dialogue,
+.character-dialogue * {
+  font-family: 'Unbounded', sans-serif !important;
+}
 @keyframes subtleZoom {
   0%, 100% { transform: scale(1.02); }
   50% { transform: scale(1.08); }
