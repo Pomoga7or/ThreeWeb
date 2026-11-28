@@ -126,14 +126,14 @@ export function SettingsModal({ isOpen, onClose }) {
         {/* Громкость */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
           <span style={{ fontSize: '0.85rem', letterSpacing: '1.5px' }}>
-            {t.volume}: {Math.round(settings.masterVolume * 100)}%
+            {t.volume}: {Math.round((Math.min(0.25, Math.max(0, settings.masterVolume)) / 0.25) * 100)}%
           </span>
           <input
             type="range"
             min="0"
-            max="1"
-            step="0.05"
-            value={settings.masterVolume}
+            max="0.25"
+            step="0.0025"
+            value={Math.min(0.25, Math.max(0, settings.masterVolume))}
             onChange={(e) => updateSettings({ masterVolume: Number(e.target.value) })}
             style={{ accentColor: 'var(--retro-accent)', cursor: 'pointer' }}
           />

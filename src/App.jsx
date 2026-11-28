@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { MainMenu } from './components/MainMenu';
 import { GameCard } from './components/GameCard';
@@ -8,6 +8,9 @@ import { Scene } from './canvas/Scene';
 import { useGameStore } from './store/useGameStore';
 import { INTERACTABLES, UI_TEXT } from './data/interactables';
 import { CharacterDialogue } from './components/CharacterDialogue';
+import { MiniPlayer } from './components/MiniPlayer';
+import { PLAYER_ENABLED } from './data/soundConfig';
+import { soundEngine } from './utils/soundEngine';
 
 export function App() {
   const isPlaying = useGameStore((state) => state.isPlaying);
@@ -84,6 +87,15 @@ export function App() {
       onClose: () => setModalConfig((prev) => ({ ...prev, isOpen: false })),
     });
   };
+
+  useEffect(() => {
+    soundEngine.syncState({
+      isPlaying,
+      masterVolume: settings.masterVolume,
+      musicMuted: settings.musicMuted,
+      isDialogueOpen: isPlaying && activeInteractable === 'about',
+    });
+  }, [isPlaying, settings.masterVolume, settings.musicMuted, activeInteractable]);
 
   const canvasDpr = settings.graphicsQuality === 'low' ? [0.75, 0.75] : [1, 1];
 
@@ -231,7 +243,7 @@ export function App() {
       <div
         style={{
           position: 'fixed',
-          bottom: '18px',
+          top: '18px',
           right: '20px',
           zIndex: 2500,
           display: 'flex',
@@ -274,7 +286,7 @@ export function App() {
           </button>
         )}
       </div>
-
+      <MiniPlayer/>
       {settings.crtEnabled && <div className="crt-overlay" />}
       <CharacterDialogue
         isOpen={isPlaying && activeInteractable === 'about'}

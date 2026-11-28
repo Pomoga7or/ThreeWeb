@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ABOUT_DIALOGUE } from '../data/aboutDialogue';
 import { useGameStore } from '../store/useGameStore';
+import { soundEngine } from '../utils/soundEngine';
 
 export function CharacterDialogue({
   isOpen,
@@ -21,6 +22,7 @@ export function CharacterDialogue({
   const [activeText, setActiveText] = useState('');
 
   const currentNode = ABOUT_DIALOGUE.nodes[nodeId] || ABOUT_DIALOGUE.nodes.root;
+  const isTypingDone = typedLength >= activeText.length;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -87,29 +89,76 @@ export function CharacterDialogue({
     return () => clearInterval(interval);
   }, [isOpen, activeText]);
 
+  // Синхронизация состояния диалога и печати с звуковым движком (бормотание + фон)
+  useEffect(() => {
+    const typingActive = Boolean(isOpen && !isTypingDone && activeText.length > 0);
+    soundEngine.syncState({
+      isDialogueOpen: Boolean(isOpen),
+      isTyping: typingActive,
+    });
+
+    if (!isOpen) {
+      soundEngine.syncState({
+        isDialogueOpen: false,
+        isTyping: false,
+      });
+    }
+  }, [isOpen, isTypingDone, activeText.length]);
+
+  useEffect(() => {
+    return () => {
+      soundEngine.syncState({
+        isDialogueOpen: false,
+        isTyping: false,
+      });
+    };
+  }, []);
+
   if (!isOpen) return null;
 
-  const isTypingDone = typedLength >= activeText.length;
   const visibleText = isTypingDone ? activeText : activeText.slice(0, typedLength);
 
   const handleTextClick = () => {
     if (!isTypingDone) {
       setTypedLength(activeText.length);
+      soundEngine.syncState({
+        isDialogueOpen: true,
+        isTyping: false,
+      });
     }
   };
 
   const handleStepBack = () => {
+    soundEngine.playUiClick();
     if (history.length > 0) {
       const prevId = history[history.length - 1];
       setHistory((prev) => prev.slice(0, -1));
       setNodeId(prevId);
     } else {
+      soundEngine.syncState({
+        isDialogueOpen: false,
+        isTyping: false,
+      });
       onClose();
     }
   };
 
+  const handleCloseClick = () => {
+    soundEngine.playUiClick();
+    soundEngine.syncState({
+      isDialogueOpen: false,
+      isTyping: false,
+    });
+    onClose();
+  };
+
   const handleChoiceClick = (choice) => {
+    soundEngine.playUiClick();
     if (choice.actionLocation) {
+      soundEngine.syncState({
+        isDialogueOpen: false,
+        isTyping: false,
+      });
       if (onSelectLocation) onSelectLocation(choice.actionLocation);
       return;
     }
@@ -185,7 +234,7 @@ export function CharacterDialogue({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleCloseClick}
             style={{
               background: 'var(--retro-accent, #b81414)',
               color: '#fff',
